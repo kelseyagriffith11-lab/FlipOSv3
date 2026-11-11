@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlipOS v3</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #1f2430;
+  --card: #2b3240;
+  --header: #111827;
+  --text: #fff;
+  --muted: #b6c0cf;
+  --accent: #4ea3ff;
+  --green: #22c55e;
+  --yellow: #facc15;
+  --red: #ef4444;
+  --gray: #9ca3af;
+  --input: #3b4354;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--header);
+  padding: 12px 12px 0;
+  text-align: center;
+}
+header h1 { font-size: 22px; }
+.overall-bar {
+  height: 8px;
+  margin: 8px 0 4px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #374151;
+}
+.overall-bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--green);
+  transition: width .2s;
+}
+#overall-text { color: #d1d5db; font-size: 13px; }
+.tabs { display: flex; margin-top: 8px; }
+.tabs button {
+  flex: 1;
+  margin: 0;
+  padding: 10px 4px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: #9ca3af;
+}
+.tabs button.active { color: white; border-bottom-color: var(--accent); }
+#content { max-width: 760px; margin: auto; padding: 14px; }
+h2 { margin: 4px 0 10px; font-size: 23px; }
+h3 { margin-bottom: 8px; font-size: 17px; }
+p { line-height: 1.45; }
+.muted { color: var(--muted); font-size: 14px; }
+.panel {
+  margin: 12px 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--card);
+}
+button {
+  margin-top: 8px;
+  padding: 11px 13px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+button:active { transform: translateY(1px); }
+button.secondary { background: var(--input); color: var(--text); }
+button.danger { background: var(--red); }
+button.full { width: 100%; }
+button.small { margin: 0; padding: 5px 9px; }
+input[type="text"], textarea, select {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 11px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--input);
+  color: var(--text);
+  font: inherit;
+}
+textarea { min-height: 90px; resize: vertical; }
+.grid { display: grid; gap: 12px; }
+.room-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.room-card {
+  min-height: 125px;
+  padding: 17px;
+  border-radius: 18px;
+  color: #111827;
+  cursor: pointer;
+  box-shadow: 0 4px 10px #0004;
+}
+.room-card strong { display: block; font-size: 20px; }
+.room-card .room-progress { margin-top: 6px; font-size: 14px; }
+.room-card .mini-bar {
+  height: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #0003;
+}
+.room-card .mini-bar i { display: block; height: 100%; background: #0009; }
+.complete { background: var(--green); color: #07130b; }
+.progress { background: var(--yellow); color: #171304; }
+.attention { background: var(--red); color: white; }
+.notstarted { background: var(--gray); color: #111827; }
+.house-plan {
+  margin: 10px 0 8px;
+  padding: 10px;
+  border-radius: 18px;
+  background: #d9cfbb;
+}
+.roof {
+  height: 58px;
+  margin: 0 auto -2px;
+  background: #7c3f2a;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.plan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  padding: 0 8px;
+}
+.plan-room {
+  min-height: 64px;
+  padding: 8px 4px;
+  border: 2px solid #1118;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: bold;
+  color: #111827;
+  cursor: pointer;
+}
+.plan-room span { display: block; margin-top: 3px; font-size: 12px; }
+.exterior-strip {
+  margin: 6px 8px 0;
+  padding: 9px;
+  border-radius: 5px;
+  background: #9ca3af;
+  color: #111827;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+.component-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.component {
+  min-height: 82px;
+  padding: 12px 8px;
+  border-radius: 14px;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+}
+.component small { display: block; margin-top: 5px; font-weight: normal; }
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid #ffffff20;
+}
+.item input { width: 21px; height: 21px; flex: none; }
+.item .item-text { flex: 1; overflow-wrap: anywhere; }
+.item.done .item-text { text-decoration: line-through; opacity: .55; }
+.item button { flex: none; }
+.add-row { display: flex; gap: 8px; }
+.add-row input { flex: 1; min-width: 0; }
+.add-row button { flex: none; }
+.row { display: flex; gap: 8px; }
+.row > * { flex: 1; }
+.status-select { font-weight: bold; }
+.flag {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--red);
+  cursor: pointer;
+}
+.empty { padding: 8px 0; }
+dialog {
+  width: min(390px, calc(100% - 32px));
+  padding: 22px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 18px 70px #0009;
+}
+dialog::backdrop { background: #0009; }
+dialog p { margin: 0 0 10px; font-size: 18px; font-weight: 600; }
+@media (max-width: 420px) {
+  #content { padding: 10px; }
+  .room-grid { gap: 9px; }
+  .room-card { padding: 14px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏠 FlipOS v3</h1>
+  <div class="overall-bar"><i id="overall-bar"></i></div>
+  <div id="overall-text"></div>
+  <nav class="tabs" aria-label="Main navigation">
+    <button type="button" data-action="tab" data-tab="tail">🚚 Tailgate</button>
+    <button type="button" data-action="tab" data-tab="house">🏠 House</button>
+    <button type="button" data-action="tab" data-tab="depot">🛒 Depot Run</button>
+  </nav>
+</header>
+
+<main id="content"></main>
+
+<dialog id="confirm-dialog">
+  <p id="confirm-message"></p>
+  <div class="row">
+    <button type="button" class="secondary" data-action="cancel-confirm">Cancel</button>
+    <button type="button" class="danger" data-action="accept-confirm">Yes</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+
+const STORAGE_KEY = "flipos_v4";
+
+const STATUS = {
+  complete: "🟢 Complete",
+  progress: "🟡 In Progress",
+  attention: "🔴 Needs Attention",
+  notstarted: "⚪ Not Started"
+};
+
+const makeComponent = (name, status = "notstarted") => ({
+  name,
+  status,
+  notes: "",
+  partner: "",
+  tasks: [],
+  materials: []
+});
+
+function defaultData() {
+  return {
+    rooms: {
+      Kitchen: [
+        makeComponent("Cabinets", "complete"),
+        makeComponent("Counters", "progress"),
+        makeComponent("Sink", "complete"),
+        makeComponent("Faucet"),
+        makeComponent("Stove", "attention"),
+        makeComponent("Fridge"),
+        makeComponent("Flooring", "progress"),
+        makeComponent("Paint"),
+        makeComponent("Trim")
+      ],
+      Bathroom: [
+        makeComponent("Vanity"), makeComponent("Toilet"),
+        makeComponent("Shower"), makeComponent("Tile"),
+        makeComponent("Lighting"), makeComponent("Paint")
+      ],
+      "Living Room": [
+        makeComponent("Flooring"), makeComponent("Paint"),
+        makeComponent("Trim"), makeComponent("Lighting"),
+        makeComponent("Windows")
+      ],
+      Bedroom: [
+        makeComponent("Flooring"), makeComponent("Paint"),
+        makeComponent("Closet"), makeComponent("Trim"),
+        makeComponent("Lighting")
+      ],
+      Laundry: [
+        makeComponent("Washer"), makeComponent("Dryer"),
+        makeComponent("Plumbing"), makeComponent("Flooring"),
+        makeComponent("Paint")
+      ],
+      Exterior: [
+        makeComponent("Roof"), makeComponent("Siding"),
+        makeComponent("Landscaping"), makeComponent("Deck"),
+        makeComponent("Garage")
+      ]
+    },
+    tail: { top3: "", a: "", b: "", wait: "" }
+  };
+}
+
+function normalizeComponent(value, fallbackName) {
+  if (typeof value === "string") {
+    return makeComponent(fallbackName, STATUS[value] ? value : "notstarted");
+  }
+  const c = value && typeof value === "object" ? value : {};
+  const tasks = Array.isArray(c.tasks) ? c.tasks : [];
+  const materials = Array.isArray(c.materials) ? c.materials : [];
+  return {
+    name: String(c.name || fallbackName || "Component"),
+    status: STATUS[c.status] ? c.status : "notstarted",
+    notes: String(c.notes ?? c.note ?? ""),
+    partner: String(c.partner ?? ""),
+    tasks: tasks.filter(x => x && typeof x === "object").map(x => ({
+      t: String(x.t ?? x.name ?? ""),
+      done: Boolean(x.done)
+    })),
+    materials: materials.filter(x => x && typeof x === "object").map(x => ({
+      t: String(x.t ?? x.name ?? ""),
+      done: Boolean(x.done)
+    }))
+  };
+}
+
+function normalizeData(raw) {
+  const base = defaultData();
+  if (!raw || typeof raw !== "object") return base;
+
+  if (raw.rooms && typeof raw.rooms === "object") {
+    const rooms = {};
+    for (const [roomName, components] of Object.entries(raw.rooms)) {
+      if (!Array.isArray(components)) continue;
+      rooms[String(roomName)] = components.map((c, i) =>
+        normalizeComponent(c, `Component ${i + 1}`)
+      );
+    }
+    return {
+      rooms: Object.keys(rooms).length ? rooms : base.rooms,
+      tail: { ...base.tail, ...(raw.tail && typeof raw.tail === "object" ? raw.tail : {}) }
+    };
+  }
+
+  // Accept older backups shaped like { Kitchen: { Cabinets: "complete" } }.
+  const rooms = {};
+  for (const [roomName, components] of Object.entries(raw)) {
+    if (!components || typeof components !== "object" || Array.isArray(components)) continue;
+    rooms[String(roomName)] = Object.entries(components).map(([name, value]) =>
+      normalizeComponent(value, name)
+    );
+  }
+  return { rooms: Object.keys(rooms).length ? rooms : base.rooms, tail: base.tail };
+}
+
+function loadData() {
+  for (const key of [STORAGE_KEY, "flipos", "flipos_v3"]) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) return normalizeData(JSON.parse(raw));
+    } catch (_) {}
+  }
+  return defaultData();
+}
+
+let data = loadData();
+let currentTab = "tail";
+let currentRoom = null;
+let currentComponent = null;
+let confirmAction = null;
+
+const content = document.getElementById("content");
+const dialog = document.getElementById("confirm-dialog");
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[ch]);
+}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
+}
+
+function roomStats(components) {
+  const total = components.length;
+  const complete = components.filter(c => c.status === "complete").length;
+  return { total, complete, percent: total ? Math.round(complete / total * 100) : 0 };
+}
+
+function roomStatus(components) {
+  if (components.length && components.every(c => c.status === "complete")) return "complete";
+  if (components.some(c => c.status === "attention")) return "attention";
+  if (components.some(c => c.status === "progress" || c.status === "complete")) return "progress";
+  return "notstarted";
+}
+
+function allComponents() {
+  return Object.values(data.rooms).flat();
+}
+
+function updateHeader() {
+  const all = allComponents();
+  const stats = roomStats(all);
+  document.getElementById("overall-bar").style.width = stats.percent + "%";
+  document.getElementById("overall-text").textContent =
+    `${stats.complete} of ${stats.total} components complete (${stats.percent}%)`;
+
+  document.querySelectorAll(".tabs button").forEach(button => {
+    button.classList.toggle("active", button.dataset.tab === currentTab);
+  });
+}
+
+function roomCard(name) {
+  const components = data.rooms[name];
+  const stats = roomStats(components);
+  const attention = components.filter(c => c.status === "attention").length;
+  return `<div class="room-card ${roomStatus(components)}"
+      data-action="open-room" data-room="${escapeHTML(name)}" role="button" tabindex="0">
+    <strong>${escapeHTML(name)}</strong>
+    <div class="room-progress">${stats.complete}/${stats.total} complete · ${stats.percent}%</div>
+    ${attention ? `<div class="room-progress">⚠️ ${attention} need attention</div>` : ""}
+    <div class="mini-bar"><i style="width:${stats.percent}%"></i></div>
+  </div>`;
+}
+
+function renderHouse() {
+  const standardRooms = ["Kitchen", "Living Room", "Bathroom", "Laundry", "Bedroom", "Exterior"];
+  let plan = `<div class="house-plan" aria-label="House plan">
+    <div class="roof"></div><div class="plan-grid">`;
+
+  for (const name of ["Kitchen", "Living Room", "Bathroom", "Laundry", "Bedroom"]) {
+    if (!data.rooms[name]) continue;
+    const stats = roomStats(data.rooms[name]);
+    plan += `<div class="plan-room ${roomStatus(data.rooms[name])}"
+      data-action="open-room" data-room="${escapeHTML(name)}" role="button" tabindex="0">
+      ${escapeHTML(name)}<span>${stats.percent}%</span></div>`;
+  }
+  plan += `</div>`;
+  if (data.rooms.Exterior) {
+    const stats = roomStats(data.rooms.Exterior);
+    plan += `<div class="exterior-strip ${roomStatus(data.rooms.Exterior)}"
+      data-action="open-room" data-room="Exterior" role="button" tabindex="0">
+      EXTERIOR · ${stats.percent}%</div>`;
+  }
+  plan += `</div>`;
+
+  const extraRooms = Object.keys(data.rooms).filter(name => !standardRooms.includes(name));
+  return `<h2>🏠 House</h2>${plan}
+    <p class="muted">Tap a room in the house plan or choose a room below.</p>
+    <div class="grid room-grid">
+      ${Object.keys(data.rooms).map(roomCard).join("")}
+    </div>
+    <section class="panel">
+      <h3>Add room</h3>
+      <div class="add-row">
+        <input id="new-room" type="text" placeholder="Room name">
+        <button type="button" data-action="add-room">Add</button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>Backup / Share</h3>
+      <p class="muted">Export a backup to copy it, or paste a backup below to import it.</p>
+      <textarea id="backup-text" placeholder="Backup text…"></textarea>
+      <div class="row">
+        <button type="button" data-action="export">Show Export</button>
+        <button type="button" class="secondary" data-action="import">Import</button>
+      </div>
+    </section>
+    <button type="button" class="full secondary" data-action="reset-all">Reset all data</button>`;
+}
+
+function renderRoom() {
+  const components = data.rooms[currentRoom] || [];
+  const mapped = components.map((component, index) => `
+    <div class="component ${component.status}" data-action="open-component" data-index="${index}" role="button" tabindex="0">
+      ${escapeHTML(component.name)}<small>${STATUS[component.status]}</small>
+    </div>`).join("");
+
+  return `<button type="button" class="full secondary" data-action="back-room">← Back to House</button>
+    <h2 style="margin-top:14px">${escapeHTML(currentRoom)}</h2>
+    <div class="component-grid">${mapped || '<p class="muted">No components yet.</p>'}</div>
+    <section class="panel">
+      <h3>Add component</h3>
+      <div class="add-row">
+        <input id="new-component" type="text" placeholder="e.g. Backsplash">
+        <button type="button" data-action="add-component">Add</button>
+      </div>
+    </section>
+    <button type="button" class="full danger" data-action="reset-room">Reset Room</button>`;
+}
+
+function renderComponent() {
+  const component = data.rooms[currentRoom]?.[currentComponent];
+  if (!component) { currentComponent = null; return renderRoom(); }
+
+  const taskHTML = renderList("task", component.tasks);
+  const materialHTML = renderList("material", component.materials);
+
+  return `<button type="button" class="full secondary" data-action="back-component">← Back to ${escapeHTML(currentRoom)}</button>
+    <section class="panel" style="margin-top:14px">
+      <h2>${escapeHTML(component.name)}</h2>
+      <label class="muted" for="component-status">Status</label>
+      <select id="component-status" class="status-select" data-field="status">
+        ${Object.entries(STATUS).map(([key, label]) =>
+          `<option value="${key}"${component.status === key ? " selected" : ""}>${label}</option>`
+        ).join("")}
+      </select>
+    </section>
+    <section class="panel">
+      <h3>Tasks</h3>${taskHTML}
+      <div class="add-row">
+        <input id="new-task" type="text" placeholder="Measure, order, install…">
+        <button type="button" data-action="add-task">Add</button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>Materials</h3>${materialHTML}
+      <div class="add-row">
+        <input id="new-material" type="text" placeholder="LVP, transitions…">
+        <button type="button" data-action="add-material">Add</button>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>Notes</h3>
+      <textarea data-field="notes" placeholder="Notes…">${escapeHTML(component.notes)}</textarea>
+    </section>
+    <section class="panel">
+      <h3>Partner Notes</h3>
+      <textarea data-field="partner" placeholder="Notes for your partner…">${escapeHTML(component.partner)}</textarea>
+    </section>
+    <button type="button" class="full danger" data-action="delete-component">Delete Component</button>`;
+}
+
+function renderList(kind, items) {
+  if (!items.length) return '<div class="muted empty">None yet</div>';
+  return items.map((item, index) => `
+    <div class="item${item.done ? " done" : ""}">
+      <input type="checkbox" data-action="toggle-item" data-kind="${kind}" data-index="${index}"${item.done ? " checked" : ""}>
+      <span class="item-text">${escapeHTML(item.t)}</span>
+      <button type="button" class="small secondary" aria-label="Remove item"
+        data-action="delete-item" data-kind="${kind}" data-index="${index}">✕</button>
+    </div>`).join("");
+}
+
+function renderTailgate() {
+  const flags = [];
+  for (const [room, components] of Object.entries(data.rooms)) {
+    components.forEach((component, index) => {
+      if (component.status === "attention") {
+        flags.push(`<div class="flag" data-action="go-to-component"
+          data-room="${escapeHTML(room)}" data-index="${index}">
+          🔴 ${escapeHTML(room)} › ${escapeHTML(component.name)}</div>`);
+      }
+    });
+  }
+
+  return `<h2>🚚 Tailgate</h2>
+    <button type="button" class="full" style="font-size:20px;padding:16px" data-action="go-house">🏠 GO TO HOUSE</button>
+    <section class="panel">
+      <h3>Today’s Top 3</h3>
+      <textarea data-tail="top3" placeholder="1.&#10;2.&#10;3.">${escapeHTML(data.tail.top3)}</textarea>
+    </section>
+    <div class="grid room-grid">
+      <section class="panel"><h3>Partner A</h3>
+        <textarea data-tail="a" placeholder="What are you working on today?">${escapeHTML(data.tail.a)}</textarea>
+      </section>
+      <section class="panel"><h3>Partner B</h3>
+        <textarea data-tail="b" placeholder="What are you working on today?">${escapeHTML(data.tail.b)}</textarea>
+      </section>
+    </div>
+    <section class="panel">
+      <h3>Waiting On</h3>
+      <textarea data-tail="wait" placeholder="Deliveries, inspections, callbacks…">${escapeHTML(data.tail.wait)}</textarea>
+    </section>
+    <section class="panel">
+      <h3>🚩 Red Flags</h3>
+      ${flags.join("") || '<div class="muted">No components need attention.</div>'}
+    </section>`;
+}
+
+function renderDepot() {
+  let rows = "";
+  let count = 0;
+  for (const [room, components] of Object.entries(data.rooms)) {
+    const materials = [];
+    components.forEach((component, componentIndex) => {
+      component.materials.forEach((material, materialIndex) => {
+        if (!material.done) {
+          count++;
+          materials.push(`<div class="item">
+            <input type="checkbox" data-action="buy-material" data-room="${escapeHTML(room)}"
+              data-component="${componentIndex}" data-index="${materialIndex}">
+            <span class="item-text">${escapeHTML(material.t)}
+              <small class="muted"> · ${escapeHTML(component.name)}</small></span>
+          </div>`);
+        }
+      });
+    });
+    if (materials.length) rows += `<h3 style="margin-top:16px">${escapeHTML(room)}</h3>${materials.join("")}`;
+  }
+
+  return `<h2>🛒 Depot Run</h2>
+    <p class="muted">Materials added to components appear here. Check one off when it’s bought.</p>
+    <section class="panel">${rows || '<p>Nothing to buy yet. Add materials inside a component and they’ll show up here.</p>'}</section>`;
+}
+
+function render() {
+  updateHeader();
+  if (currentTab === "depot") content.innerHTML = renderDepot();
+  else if (currentTab === "tail") content.innerHTML = renderTailgate();
+  else if (currentRoom === null) content.innerHTML = renderHouse();
+  else if (currentComponent === null) content.innerHTML = renderRoom();
+  else content.innerHTML = renderComponent();
+}
+
+function ask(message, action) {
+  document.getElementById("confirm-message").textContent = message;
+  confirmAction = action;
+  dialog.showModal();
+}
+
+function addItem(inputId, listName) {
+  const input = document.getElementById(inputId);
+  const value = input?.value.trim();
+  if (!value) return;
+  data.rooms[currentRoom][currentComponent][listName].push({ t: value, done: false });
+  save();
+  render();
+}
+
+content.addEventListener("click", event => {
+  const target = event.target.closest("[data-action]");
+  if (!target) return;
+
+  const action = target.dataset.action;
+  const index = Number(target.dataset.index);
+
+  if (action === "tab") {
+    currentTab = target.dataset.tab;
+    currentRoom = null;
+    currentComponent = null;
+  } else if (action === "go-house") {
+    currentTab = "house";
+    currentRoom = null;
+    currentComponent = null;
+  } else if (action === "open-room") {
+    currentTab = "house";
+    currentRoom = target.dataset.room;
+    currentComponent = null;
+  } else if (action === "back-room") {
+    currentRoom = null;
+    currentComponent = null;
+  } else if (action === "open-component") {
+    currentComponent = index;
+  } else if (action === "back-component") {
+    currentComponent = null;
+  } else if (action === "go-to-component") {
+    currentTab = "house";
+    currentRoom = target.dataset.room;
+    currentComponent = index;
+  } else if (action === "add-room") {
+    const input = document.getElementById("new-room");
+    const name = input.value.trim();
+    if (!name || Object.hasOwn(data.rooms, name)) return;
+    data.rooms[name] = [];
+    save();
+  } else if (action === "add-component") {
+    const input = document.getElementById("new-component");
+    const name = input.value.trim();
+    if (!name) return;
+    data.rooms[currentRoom].push(makeComponent(name));
+    save();
+  } else if (action === "add-task") {
+    addItem("new-task", "tasks");
+    return;
+  } else if (action === "add-material") {
+    addItem("new-material", "materials");
+    return;
+  } else if (action === "toggle-item") {
+    const listName = target.dataset.kind === "task" ? "tasks" : "materials";
+    const item = data.rooms[currentRoom][currentComponent][listName][index];
+    item.done = target.checked;
+    save();
+    render();
+    return;
+  } else if (action === "delete-item") {
+    const listName = target.dataset.kind === "task" ? "tasks" : "materials";
+    data.rooms[currentRoom][currentComponent][listName].splice(index, 1);
+    save();
+  } else if (action === "buy-material") {
+    data.rooms[target.dataset.room][Number(target.dataset.component)].materials[index].done = true;
+    save();
+  } else if (action === "reset-room") {
+    const name = currentRoom;
+    ask(`Are you sure you want to reset ${name.toUpperCase()}?`, () => {
+      (data.rooms[name] || []).forEach(component => component.status = "notstarted");
+      save();
+      render();
+    });
+    return;
+  } else if (action === "reset-all") {
+    ask("Are you sure you want to reset EVERYTHING? This restores the default data.", () => {
+      data = defaultData();
+      currentRoom = null;
+      currentComponent = null;
+      currentTab = "tail";
+      save();
+      render();
+    });
+    return;
+  } else if (action === "delete-component") {
+    const name = data.rooms[currentRoom][currentComponent]?.name || "this component";
+    ask(`Delete ${name}? This cannot be undone.`, () => {
+      data.rooms[currentRoom].splice(currentComponent, 1);
+      currentComponent = null;
+      save();
+      render();
+    });
+    return;
+  } else if (action === "export") {
+    const box = document.getElementById("backup-text");
+    box.value = JSON.stringify(data);
+    box.focus();
+    box.select();
+    return;
+  } else if (action === "import") {
+    let imported;
+    try {
+      imported = normalizeData(JSON.parse(document.getElementById("backup-text").value));
+    } catch (_) {
+      ask("That doesn’t look like valid FlipOS backup text.", () => {});
+      return;
+    }
+    ask("Replace everything with the pasted backup data?", () => {
+      data = imported;
+      currentRoom = null;
+      currentComponent = null;
+      save();
+      render();
+    });
+    return;
+  } else if (action === "accept-confirm") {
+    const callback = confirmAction;
+    confirmAction = null;
+    dialog.close();
+    callback?.();
+    return;
+  } else if (action === "cancel-confirm") {
+    confirmAction = null;
+    dialog.close();
+    return;
+  } else {
+    return;
+  }
+
+  save();
+  render();
+});
+
+content.addEventListener("change", event => {
+  const field = event.target.dataset.field;
+  if (field && currentRoom !== null && currentComponent !== null) {
+    data.rooms[currentRoom][currentComponent][field] = event.target.value;
+    save();
+    if (field === "status") updateHeader();
+  }
+});
+
+content.addEventListener("input", event => {
+  const tailField = event.target.dataset.tail;
+  if (tailField) {
+    data.tail[tailField] = event.target.value;
+    save();
+    return;
+  }
+  const field = event.target.dataset.field;
+  if (field && field !== "status" && currentRoom !== null && currentComponent !== null) {
+    data.rooms[currentRoom][currentComponent][field] = event.target.value;
+    save();
+  }
+});
+
+content.addEventListener("keydown", event => {
+  if ((event.key === "Enter" || event.key === " ") &&
+      event.target.matches('[role="button"][data-action]')) {
+    event.preventDefault();
+    event.target.click();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
